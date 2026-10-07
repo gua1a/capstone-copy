@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한림대 스마트 하교 도우미</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f7f6; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #004b87; }
+        select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        button { background-color: #004b87; color: white; cursor: pointer; border: none; font-weight: bold; }
+        .card { background: #f9f9f9; border-left: 4px solid #004b87; padding: 15px; margin-top: 15px; border-radius: 5px; }
+        .bus-warning { color: red; font-weight: bold; }
+        .bus-safe { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚌 한림대 통학 마스터</h2>
+    <label>현재 내 위치(출발지):</label>
+    <select id="locationSelect">
+        <!-- 파이썬에서 넘겨준 건물 목록이 드롭다운으로 자동 생성됩니다 -->
+        {% for building in buildings %}
+            <option value="{{ building }}">{{ building }}</option>
+        {% endfor %}
+    </select>
+    
+    <button onclick="searchRoutes()">최적 경로 찾기</button>
+
+    <div id="resultArea"></div>
+</div>
+
+<script>
+    function searchRoutes() {
+        const location = document.getElementById("locationSelect").value;
+        const resultArea = document.getElementById("resultArea");
+        resultArea.innerHTML = "<p>데이터를 분석 중입니다... (약 3~5초 소요)</p>";
+
+        // 파이썬 백엔드(app.py)로 선택한 건물 이름을 보냅니다.
+        fetch('/get_route_info', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: location })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                resultArea.innerHTML = `<p style="color:red">${data.error}</p>`;
+                return;
+            }
+            
+            // 파이썬이 계산해준 데이터를 화면에 예쁘게 그려줍니다.
+            let html = "";
+            data.forEach(station => {
+                html += `<div class="card">
+                            <h3>🚏 ${station.station_name}</h3>
+                            <p>🚶‍♂️ 걷는 시간: <b>${station.walk_min}분</b> (${station.walk_dist}m)</p>
+                            <hr>`;
+                if (station.buses.length === 0) {
+                    html += `<p>🚍 현재 다가오는 버스 없음</p>`;
+                } else {
+                    station.buses.forEach(bus => {
+                        let status = station.walk_min > bus.min_left 
+                                     ? `<span class="bus-warning">뛰어야 탑승 가능!</span>` 
+                                     : `<span class="bus-safe">여유있게 탑승 가능</span>`;
+                        html += `<p>🚍 ${bus.route}번 버스: <b>${bus.min_left}분 후 도착</b> <br> ${status}</p>`;
+                    });
+                }
+                html += `</div>`;
+            });
+            resultArea.innerHTML = html;
+        })
+        .catch(error => {
+            resultArea.innerHTML = "<p>오류가 발생했습니다.</p>";
+        });
+    }
+</script>
+
+</body>
+</html>
