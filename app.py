@@ -18,10 +18,10 @@ app = Flask(__name__, template_folder=template_dir)
 # ==========================================
 # 🔑 1. API 키 설정 (깃허브 올릴 땐 꼭 지우세요!)
 # ==========================================
-NAVER_CLIENT_ID = "gthv6ddfee"
-NAVER_CLIENT_SECRET = "fPXCfIgHCdzW7XaH3q421qXGLbtaWEpBPrIXbRex"
-TMAP_APP_KEY = "lWNZN6c9qbafOyL5qAudP7335IOhHX8E2pvprQ4C"
-PUBLIC_DATA_KEY = "a71451c7c7109143b19101cf7ff0fcb04f7278bf1424454a720d9a9d1db98ecb" 
+NAVER_CLIENT_ID = "---"
+NAVER_CLIENT_SECRET = "---"
+TMAP_APP_KEY = "---"
+PUBLIC_DATA_KEY = "---" 
 CITY_CODE = "32010" # 춘천시
 
 # ==========================================
